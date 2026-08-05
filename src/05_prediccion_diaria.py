@@ -54,6 +54,15 @@ def consolidar(series):
         df[f"{nombre}_Close"] = series[nombre]
     df.index.name = "DATE"
     df = df.dropna(subset=["oro_xauusd_Close", "usd_cop_Close", "oro_cop"])
+
+    # Los distintos mercados (metales, forex, indices) cierran en horarios y
+    # calendarios distintos, por lo que el ultimo dia descargado a veces trae
+    # una serie sin completar aun (NaN). Se descarta la cola hasta que todas
+    # las columnas del dia esten completas.
+    columnas_core = ["oro_xauusd_Close", "usd_cop_Close", "oro_cop", "dxy_Close",
+                      "vix_Close", "wti_crudo_Close", "bono_10y_Close"]
+    while len(df) and df.iloc[-1][columnas_core].isna().any():
+        df = df.iloc[:-1]
     return df
 
 
@@ -104,6 +113,9 @@ def predecir_manana(df_features):
 
     fila_manana = df_features.iloc[[-1]]
     X_manana = fila_manana[FEATURES]
+    if X_manana.isna().any(axis=None):
+        faltantes = X_manana.columns[X_manana.isna().any()].tolist()
+        raise ValueError(f"Features incompletas para el dia a predecir: {faltantes}")
     retorno_predicho = float(modelo.predict(X_manana)[0])
 
     precio_hoy = float(df_features["oro_cop"].dropna().iloc[-1])
