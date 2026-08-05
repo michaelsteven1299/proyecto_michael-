@@ -1,0 +1,36 @@
+name: Prediccion diaria oro COP
+
+on:
+  schedule:
+    # 22:00 UTC = despues del cierre del mercado de EEUU (16:00-17:00 hora Este)
+    - cron: "0 22 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar-prediccion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install pandas numpy scikit-learn yfinance
+
+      - name: Ejecutar pipeline de prediccion
+        run: python src/05_prediccion_diaria.py
+
+      - name: Commit y push de los resultados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dashboard_data/
+          git diff --cached --quiet || git commit -m "Actualizacion diaria: prediccion oro COP $(date -u +%Y-%m-%d)"
+          git push

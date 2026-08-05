@@ -1,0 +1,16 @@
+modelo,rmse_promedio,mejora_pct,ventanas_ganadas
+Linear Regression,0.014564,4.163935,6
+Huber Regressor,0.014669,3.468624,5
+Bayesian Ridge,0.014836,2.372132,6
+Extra Trees,0.014847,2.301467,5
+Ridge,0.014893,1.997537,5
+Random Forest,0.014946,1.648443,5
+AdaBoost,0.014992,1.34092,4
+LightGBM,0.015124,0.473861,4
+K-Nearest Neighbors,0.015131,0.427588,5
+ElasticNet,0.015172,0.161685,5
+Lasso,0.015186,0.06866,4
+Gradient Boosting,0.015381,-1.214669,5
+SVR (RBF),0.015613,-2.74505,2
+Decision Tree,0.015687,-3.231746,1
+XGBoost,0.015893,-4.585363,1
