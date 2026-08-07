@@ -22,10 +22,24 @@ jobs:
           python-version: "3.12"
 
       - name: Instalar dependencias
-        run: pip install pandas numpy scikit-learn yfinance
+        run: pip install pandas numpy scikit-learn yfinance matplotlib lightgbm xgboost jupyter nbclient nbformat ipykernel
 
-      - name: Ejecutar pipeline de prediccion
-        run: python src/05_prediccion_diaria.py
+      # La prediccion no sale de un script aparte: se ejecutan los mismos
+      # notebooks (00 -> 01 -> 02 -> 04) que un profesor correria en Colab
+      # para revisar el proyecto. 04_modelo.ipynb termina con la seccion
+      # "Prediccion para el dia siguiente", que es la que alimenta la
+      # pagina web.
+      - name: Ejecutar 00_descargas.ipynb
+        run: python .github/scripts/run_notebook.py src/00_descargas.ipynb
+
+      - name: Ejecutar 01_consolidar.ipynb
+        run: python .github/scripts/run_notebook.py src/01_consolidar.ipynb
+
+      - name: Ejecutar 02_limpieza.ipynb
+        run: python .github/scripts/run_notebook.py src/02_limpieza.ipynb
+
+      - name: Ejecutar 04_modelo.ipynb (incluye la prediccion del dia siguiente)
+        run: python .github/scripts/run_notebook.py src/04_modelo.ipynb
 
       - name: Generar pagina web (docs/index.html para GitHub Pages)
         run: python src/06_build_pagina.py
@@ -34,6 +48,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dashboard_data/ docs/
+          git add dashboard_data/ docs/ src/00_descargas.ipynb src/01_consolidar.ipynb src/02_limpieza.ipynb src/04_modelo.ipynb
           git diff --cached --quiet || git commit -m "Actualizacion diaria: prediccion oro COP $(date -u +%Y-%m-%d)"
           git push

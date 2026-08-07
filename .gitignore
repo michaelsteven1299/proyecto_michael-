@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Cache local generado por los notebooks al ejecutarse fuera de Colab
+# (GitHub Actions o localmente). Carpeta separada de data/ para no tocar
+# los archivos de ejemplo de la plantilla. Se regenera desde cero en cada
+# corrida; solo dashboard_data/ y docs/ se versionan.
+_ci_cache/
