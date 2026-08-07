@@ -8,10 +8,19 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   actualizar-prediccion:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,7 +50,7 @@ jobs:
       - name: Ejecutar 04_modelo.ipynb (incluye la prediccion del dia siguiente)
         run: python .github/scripts/run_notebook.py src/04_modelo.ipynb
 
-      - name: Generar pagina web (docs/index.html para GitHub Pages)
+      - name: Generar pagina web (docs/index.html)
         run: python src/06_build_pagina.py
 
       - name: Commit y push de los resultados
@@ -51,3 +60,16 @@ jobs:
           git add dashboard_data/ docs/ src/00_descargas.ipynb src/01_consolidar.ipynb src/02_limpieza.ipynb src/04_modelo.ipynb
           git diff --cached --quiet || git commit -m "Actualizacion diaria: prediccion oro COP $(date -u +%Y-%m-%d)"
           git push
+
+      # El push anterior usa el GITHUB_TOKEN automatico, que no siempre
+      # dispara la reconstruccion de Pages por si solo. Por eso se
+      # despliega aqui explicitamente con las acciones oficiales de Pages,
+      # usando el docs/ que se acaba de generar en este mismo job.
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
