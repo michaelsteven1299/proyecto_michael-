@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oro en Pesos Colombianos — Precio, Predicción y Simulador</title>
+<meta name="description" content="Precio del oro en pesos colombianos con predicción diaria por machine learning, simulador de valor por gramos/quilates y simulador de inversión. Proyecto de Ciencia de Datos.">
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #f3f2ef;
+    --surface-page:   #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --series-2:       #eb6834;
+    --good:           #006300;
+    --good-bg:        #0ca30c;
+    --critical:       #d03b3b;
+    --card-shadow:    0 1px 2px rgba(11,11,11,0.06), 0 1px 1px rgba(11,11,11,0.04);
+    --accent-wash:    color-mix(in srgb, var(--series-1) 8%, transparent);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #232322;
+      --surface-page:   #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --good:           #0ca30c;
+      --good-bg:        #0ca30c;
+      --critical:       #e66767;
+      --card-shadow:    0 1px 2px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.2);
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #232322;
+    --surface-page:   #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --good:           #0ca30c;
+    --good-bg:        #0ca30c;
+    --critical:       #e66767;
+    --card-shadow:    0 1px 2px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.2);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--surface-page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 64px; }
+  a { color: var(--series-1); }
+
+  /* ---------- HERO ---------- */
+  .hero { padding: 40px 20px 34px; text-align:center; border-bottom: 1px solid var(--border); margin-bottom: 32px; background: linear-gradient(180deg, var(--accent-wash), transparent); }
+  .hero .eyebrow { font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); font-weight:600; margin-bottom: 10px; }
+  .hero h1 { font-size: 30px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.01em; max-width: 720px; margin-left:auto; margin-right:auto; }
+  .hero p.lead { max-width: 620px; margin: 0 auto 22px; color: var(--text-secondary); font-size: 15px; line-height:1.55; }
+  .hero-price-row { display:flex; justify-content:center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .hero-price { background: var(--surface-1); border:1px solid var(--border); border-radius:16px; padding: 16px 24px; box-shadow: var(--card-shadow); min-width: 220px; }
+  .hero-price .lbl { font-size: 12px; color: var(--text-secondary); margin-bottom:4px; }
+  .hero-price .val { font-size: 30px; font-weight: 800; }
+  .hero-price .sub { font-size: 12.5px; margin-top: 4px; font-weight:600; }
+  .hero-price .sub.up { color: var(--good); }
+  .hero-price .sub.down { color: var(--critical); }
+  .hero-cta { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .btn { display:inline-block; padding: 11px 20px; border-radius: 999px; font-size: 14px; font-weight:700; text-decoration:none; cursor:pointer; border:1px solid transparent; font-family:inherit; }
+  .btn-primary { background: var(--series-1); color:#fff; }
+  .btn-secondary { background: transparent; color: var(--text-primary); border-color: var(--border); }
+  .meta-row { display:flex; flex-wrap:wrap; gap: 6px 16px; justify-content:center; margin-top: 18px; font-size: 12px; color: var(--text-muted); }
+  .pulse { display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--good-bg); margin-right:6px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--good-bg) 20%, transparent); }
+
+  section.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px 20px; margin-bottom: 20px; box-shadow: var(--card-shadow); scroll-margin-top: 20px; }
+  section.card h2 { font-size: 18px; font-weight: 800; margin: 0 0 2px; }
+  section.card .kicker { font-size: 11.5px; text-transform:uppercase; letter-spacing:.05em; color: var(--series-1); font-weight:700; margin-bottom:4px; }
+  section.card p.desc { margin: 0 0 16px; font-size: 13.5px; color: var(--text-secondary); max-width: 760px; line-height:1.5; }
+
+  /* ---------- SIMULATOR ---------- */
+  .sim-tabs { display:flex; gap:8px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+  .sim-tabs button { background:none; border:none; font-family:inherit; font-size:14px; font-weight:700; color: var(--text-muted); padding: 10px 4px; cursor:pointer; border-bottom: 2px solid transparent; margin-right: 18px; }
+  .sim-tabs button.active { color: var(--text-primary); border-bottom-color: var(--series-1); }
+  .sim-panel { display:none; }
+  .sim-panel.active { display:block; }
+  .sim-grid { display:grid; grid-template-columns: 300px 1fr; gap: 24px; align-items:start; }
+  @media (max-width: 760px) { .sim-grid { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 14px; }
+  .field label { display:block; font-size: 12.5px; font-weight:600; color: var(--text-secondary); margin-bottom: 6px; }
+  .field input, .field select { width:100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary); font-size: 15px; font-family:inherit; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--series-1); outline-offset: 1px; }
+  .field .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+
+  .result-hero { background: var(--surface-2); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+  .result-hero .lbl { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px; }
+  .result-hero .val { font-size: 32px; font-weight: 800; }
+  .result-hero .sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  table.ref-table { width:100%; border-collapse:collapse; font-size:13px; }
+  table.ref-table th, table.ref-table td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--grid); }
+  table.ref-table th { color: var(--text-muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.02em; }
+  table.ref-table td.num { text-align:right; font-variant-numeric: tabular-nums; font-weight:600; }
+
+  .invest-result { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+  @media (max-width: 500px) { .invest-result { grid-template-columns: 1fr; } }
+  .invest-result .box { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; }
+  .invest-result .box .lbl { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .invest-result .box .val { font-size: 19px; font-weight: 800; }
+  .invest-result .box .val.up { color: var(--good); }
+  .invest-result .box .val.down { color: var(--critical); }
+
+  .disclaimer-box { font-size: 12px; color: var(--text-muted); background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin-top: 14px; line-height:1.5; }
+  .disclaimer-box strong { color: var(--text-secondary); }
+
+  /* ---------- KPI ---------- */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 16px 14px; box-shadow: var(--card-shadow); }
+  .kpi .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+  .kpi .value { font-size: 21px; font-weight: 700; line-height:1.15; }
+  .kpi .delta { font-size: 13px; margin-top: 6px; font-weight: 600; display:flex; align-items:center; gap:4px; }
+  .kpi .delta.up { color: var(--good); }
+  .kpi .delta.down { color: var(--critical); }
+  .kpi .foot { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+  .kpi .pending { color: var(--text-muted); font-size: 13px; margin-top: 6px; }
+
+  .filter-row { display:flex; gap:6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-row button { border:1px solid var(--border); background: transparent; color: var(--text-secondary); font-size:12.5px; padding:5px 11px; border-radius:999px; cursor:pointer; font-family:inherit; }
+  .filter-row button:hover { background: var(--accent-wash); }
+  .filter-row button.active { background: var(--series-1); color:#fff; border-color: var(--series-1); }
+
+  .chart-tooltip { position:absolute; pointer-events:none; background: var(--surface-1); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:12px; box-shadow: var(--card-shadow); opacity:0; transition: opacity .08s; z-index:5; white-space:nowrap; }
+  .chart-tooltip .tt-date { color: var(--text-muted); margin-bottom:4px; }
+  .chart-tooltip .tt-row { display:flex; align-items:center; gap:6px; }
+  .chart-tooltip .tt-key { width:10px; height:2px; border-radius:1px; flex:none; }
+  .chart-tooltip .tt-val { font-weight:700; }
+  .chart-tooltip .tt-name { color: var(--text-secondary); }
+
+  .legend { display:flex; gap:16px; margin-bottom:10px; flex-wrap:wrap; }
+  .legend .item { display:flex; align-items:center; gap:6px; font-size:12.5px; color: var(--text-secondary); }
+  .legend .key { width:14px; height:2px; border-radius:1px; }
+
+  .mini-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px; }
+  .mini-grid .mini h3 { font-size:12.5px; font-weight:600; color: var(--text-secondary); margin:0 0 6px; }
+
+  .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .grid-2, .mini-grid { grid-template-columns: 1fr; } }
+
+  .bar-chart .bar-row { display:grid; grid-template-columns: 150px 1fr 64px; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; }
+  .bar-chart .bar-row .name { color: var(--text-secondary); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-chart .bar-row .name.champion { color: var(--text-primary); font-weight:700; }
+  .bar-chart .track { position:relative; height:16px; background: transparent; }
+  .bar-chart .track .zero-line { position:absolute; top:0; bottom:0; width:1px; background: var(--baseline); }
+  .bar-chart .track .fill { position:absolute; top:2px; bottom:2px; border-radius:3px; }
+  .bar-chart .bar-row .val { font-weight:600; text-align:left; font-variant-numeric: tabular-nums; }
+  .champion-badge { display:inline-block; font-size:10.5px; font-weight:700; background: var(--text-primary); color: var(--surface-1); border-radius: 5px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+
+  .empty-note { font-size:13px; color: var(--text-muted); background: var(--accent-wash); border-radius:10px; padding: 12px 14px; margin-top: 4px; }
+
+  details.methodology summary { cursor:pointer; font-size:14px; font-weight:700; padding: 4px 0; }
+  details.methodology[open] summary { margin-bottom: 12px; }
+  details.table-toggle summary { cursor:pointer; font-size:12.5px; color: var(--series-1); margin-top: 10px; }
+
+  footer.bottom { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  footer.bottom a { text-decoration:none; }
+  footer.bottom a:hover { text-decoration:underline; }
+
+  .anchor-nav { display:flex; gap: 4px; flex-wrap:wrap; justify-content:center; margin-top: 4px; }
+  .anchor-nav a { font-size: 12.5px; color: var(--text-secondary); text-decoration:none; padding: 5px 10px; border-radius: 999px; }
+  .anchor-nav a:hover { background: var(--accent-wash); color: var(--series-1); }
+</style>
+</head>
+<body>
+
+<div class="viz-root">
+
+  <header class="hero">
+    <div class="eyebrow">Proyecto de Ciencia de Datos · Michael Romero · Universidad Libre</div>
+    <h1>¿Cuánto valdrá el oro mañana en pesos colombianos?</h1>
+    <p class="lead">Un modelo de aprendizaje automático, entrenado todos los días con datos públicos de mercado, estima el precio del oro en COP para el día siguiente. Incluye un simulador para calcular el valor de tu oro por gramos y quilates.</p>
+
+    <div class="hero-price-row">
+      <div class="hero-price">
+        <div class="lbl">Precio actual (COP / onza)</div>
+        <div class="val" id="hero-precio-hoy">—</div>
+      </div>
+      <div class="hero-price">
+        <div class="lbl" id="hero-pred-label">Predicción para mañana</div>
+        <div class="val" id="hero-precio-manana">—</div>
+        <div class="sub" id="hero-delta">—</div>
+      </div>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#simulador" class="btn btn-primary">Calcular el valor de mi oro</a>
+      <a href="#tendencia" class="btn btn-secondary">Ver tendencia histórica</a>
+    </div>
+
+    <div class="meta-row">
+      <span><span class="pulse"></span>Datos y predicción se actualizan solos todos los días hábiles</span>
+      <span id="meta-updated">Última actualización: —</span>
+    </div>
+    <nav class="anchor-nav">
+      <a href="#simulador">Simulador</a>
+      <a href="#tendencia">Tendencia</a>
+      <a href="#precision">Precisión del modelo</a>
+      <a href="#que-mueve">Qué mueve el precio</a>
+      <a href="#metodologia">Metodología</a>
+    </nav>
+  </header>
+
+  <div class="wrap">
+
+    <section class="card" id="simulador">
+      <div class="kicker">Herramienta</div>
+      <h2>Simulador de oro</h2>
+      <p class="desc">Calcula cuánto vale tu oro por gramos y quilates, o simula qué pasaría con una inversión si el modelo acierta su predicción para mañana. Estos cálculos usan el precio internacional del oro convertido a pesos — <strong>no</strong> el precio al que compra o vende una joyería o casa de cambio física (ver nota abajo).</p>
+
+      <div class="sim-tabs">
+        <button data-tab="gramos" class="active">Valor por gramos y quilates</button>
+        <button data-tab="inversion">Simulador de inversión a 1 día</button>
+      </div>
+
+      <div class="sim-panel active" id="panel-gramos">
+        <div class="sim-grid">
+          <div>
+            <div class="field">
+              <label for="input-gramos">Peso</label>
+              <input type="number" id="input-gramos" value="10" min="0" step="0.1">
+              <div class="hint">En gramos</div>
+            </div>
+            <div class="field">
+              <label for="input-quilate">Quilataje (pureza del oro)</label>
+              <select id="input-quilate">
+                <option value="24">24 quilates — oro puro (999)</option>
+                <option value="22">22 quilates (916)</option>
+                <option value="21">21 quilates (875)</option>
+                <option value="18" selected>18 quilates (750) — el más común en joyería</option>
+                <option value="14">14 quilates (585)</option>
+                <option value="10">10 quilates (417)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div class="result-hero">
+              <div class="lbl">Valor estimado</div>
+              <div class="val" id="gramos-resultado">—</div>
+              <div class="sub" id="gramos-sub">—</div>
+            </div>
+            <table class="ref-table" id="tabla-referencia">
+              <thead><tr><th>Peso de referencia</th><th class="num">Valor estimado</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-panel" id="panel-inversion">
+        <div class="sim-grid">
+          <div>
+            <div class="field">
+              <label for="input-monto">Monto a invertir</label>
+              <input type="number" id="input-monto" value="1000000" min="0" step="10000">
+              <div class="hint">En pesos colombianos (COP)</div>
+            </div>
+            <div class="field">
+              <div class="hint">Se simula la compra de oro (base 24k / spot) hoy, y su valor si el retorno de mañana ocurre exactamente como lo predijo el modelo.</div>
+            </div>
+          </div>
+          <div>
+            <div class="result-hero">
+              <div class="lbl">Oro equivalente hoy</div>
+              <div class="val" id="inv-gramos">—</div>
+            </div>
+            <div class="invest-result">
+              <div class="box">
+                <div class="lbl">Valor estimado mañana</div>
+                <div class="val" id="inv-valor-manana">—</div>
+              </div>
+              <div class="box">
+                <div class="lbl">Ganancia / pérdida estimada</div>
+                <div class="val" id="inv-ganancia">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="disclaimer-box">
+        <strong>Importante:</strong> estos cálculos usan el precio internacional del oro (ETF GLD) convertido a pesos con la tasa USD/COP del día — es un precio de referencia tipo "mayorista", no el precio al que una joyería, compraventa o casa de cambio te compraría o vendería oro físico, que incluye margen del comercio, costos de refinación y verificación de pureza. El castellano se muestra como referencia tradicional (≈4.6 g); puede variar según la región. Esto es un proyecto académico y no constituye asesoría financiera.
+      </div>
+    </section>
+
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <section class="card" id="tendencia">
+      <div class="kicker">Histórico</div>
+      <h2>Tendencia del oro en pesos colombianos</h2>
+      <p class="desc">Precio de una onza de oro (GLD) convertida a pesos colombianos con la tasa USD/COP del mismo día. Pase el cursor sobre la línea para ver el valor de cualquier fecha.</p>
+      <div class="filter-row" id="range-filter">
+        <button data-range="30">1M</button>
+        <button data-range="90">3M</button>
+        <button data-range="180">6M</button>
+        <button data-range="365">1A</button>
+        <button data-range="all" class="active">Todo</button>
+      </div>
+      <div id="chart-precio"></div>
+      <div class="mini-grid">
+        <div class="mini">
+          <h3>USD / COP (tasa de cambio)</h3>
+          <div id="chart-usdcop"></div>
+        </div>
+        <div class="mini">
+          <h3>Oro internacional (USD / oz, GLD)</h3>
+          <div id="chart-xau"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="precision">
+      <div class="kicker">Transparencia</div>
+      <h2>Precisión del modelo: predicción vs. realidad</h2>
+      <p class="desc">Cada día hábil el modelo predice el precio del día siguiente. Cuando ese día llega, se compara la predicción contra el precio real. Este historial crece automáticamente y nunca se edita retroactivamente.</p>
+      <div id="chart-prediccion"></div>
+    </section>
+
+    <section class="card" id="que-mueve">
+      <div class="kicker">Insumos del modelo</div>
+      <h2>Qué mueve el precio</h2>
+      <p class="desc">Relaciones que el modelo aprovecha para predecir: variables macro rezagadas y el efecto del día de la semana sobre la tasa de cambio.</p>
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size:13px;margin:0 0 8px;color:var(--text-secondary);">Correlación de variables macro (rezagadas 1 día)</h3>
+          <div id="chart-macro" class="bar-chart"></div>
+          <details class="table-toggle">
+            <summary>Ver correlación por rezago del USD/COP (días 1–10)</summary>
+            <div id="chart-lags" class="bar-chart" style="margin-top:10px;"></div>
+          </details>
+        </div>
+        <div>
+          <h3 style="font-size:13px;margin:0 0 8px;color:var(--text-secondary);">Retorno promedio del USD/COP por día de la semana</h3>
+          <div id="chart-dow" class="bar-chart"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="metodologia">
+      <details class="methodology">
+        <summary>Metodología y comparación de modelos (para quien quiera revisar el detalle técnico)</summary>
+        <p class="desc">15 algoritmos evaluados con 6 ventanas temporales sucesivas (TimeSeriesSplit), midiendo la mejora de RMSE frente a la referencia de persistencia (asumir que el retorno de mañana es cero). El modelo en producción se reentrena todos los días con el histórico completo disponible.</p>
+        <div id="chart-modelos" class="bar-chart"></div>
+      </details>
+    </section>
+
+  </div>
+
+  <footer class="bottom">
+    <div class="wrap">
+      <p><strong>Fuente:</strong> Yahoo Finance vía la librería <code>yfinance</code> (GLD, COP=X, DX-Y.NYB, ^VIX, CL=F, ^TNX). <strong>Modelo:</strong> Regresión Lineal, reentrenada diariamente sobre todo el histórico disponible.</p>
+      <p><strong>Automatización:</strong> un workflow de GitHub Actions descarga los datos, reentrena el modelo y publica los resultados todos los días hábiles después del cierre de mercado — sin intervención manual. <a href="https://github.com/michaelsteven1299/proyecto_michael-" target="_blank" rel="noopener">Ver el código en GitHub →</a></p>
+      <p>Este es un proyecto académico con fines educativos. Las predicciones y simuladores no constituyen asesoría financiera ni recomendación de inversión ni de compraventa de oro.</p>
+    </div>
+  </footer>
+
+</div>
+
+<div class="chart-tooltip" id="tooltip"></div>
+
+<script id="dashboard-data" type="application/json">__DATA_JSON__</script>
+<script>
+const DATA = JSON.parse(document.getElementById('dashboard-data').textContent);
+const cssVar = (name) => getComputedStyle(document.querySelector('.viz-root')).getPropertyValue(name).trim();
+const fmtCOP = (v) => '$' + Math.round(v).toLocaleString('es-CO');
+const fmtCOP2 = (v) => '$' + v.toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtCOPk = (v) => {
+  if (Math.abs(v) >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+  if (Math.abs(v) >= 1e3) return '$' + (v/1e3).toFixed(0) + 'K';
+  return '$' + Math.round(v);
+};
+const fmtPct = (v, d=2) => (v>0?'+':'') + v.toFixed(d) + '%';
+const fmtDate = (s) => { const d = new Date(s+'T00:00:00'); return d.toLocaleDateString('es-CO', {day:'numeric', month:'short', year:'numeric'}); };
+const fmtDateShort = (s) => { const d = new Date(s+'T00:00:00'); return d.toLocaleDateString('es-CO', {day:'numeric', month:'short'}); };
+
+const GRAMOS_POR_ONZA = 31.1034768;
+const PRECIO_GRAMO_24K = DATA.resumen.precio_oro_cop_hoy / GRAMOS_POR_ONZA;
+const QUILATES = {24: 0.999, 22: 0.9167, 21: 0.875, 18: 0.75, 14: 0.585, 10: 0.417};
+
+// ---------- HERO ----------
+(function() {
+  const r = DATA.resumen;
+  document.getElementById('hero-precio-hoy').textContent = fmtCOP(r.precio_oro_cop_hoy);
+  document.getElementById('hero-precio-manana').textContent = fmtCOP(r.precio_oro_cop_predicho_manana);
+  document.getElementById('hero-pred-label').textContent = 'Predicción para ' + fmtDateShort(r.fecha_objetivo);
+  const up = r.retorno_predicho_manana_pct >= 0;
+  const sub = document.getElementById('hero-delta');
+  sub.textContent = (up ? '▲ ' : '▼ ') + fmtPct(r.retorno_predicho_manana_pct);
+  sub.className = 'sub ' + (up ? 'up' : 'down');
+  document.getElementById('meta-updated').textContent = 'Última actualización: ' + r.fecha_actualizacion;
+})();
+
+// ---------- SIMULADOR: gramos y quilates ----------
+function actualizarSimuladorGramos() {
+  const gramos = parseFloat(document.getElementById('input-gramos').value) || 0;
+  const quilate = parseInt(document.getElementById('input-quilate').value, 10);
+  const pureza = QUILATES[quilate];
+  const precioGramo = PRECIO_GRAMO_24K * pureza;
+  const valor = precioGramo * gramos;
+
+  document.getElementById('gramos-resultado').textContent = fmtCOP(valor);
+  document.getElementById('gramos-sub').textContent =
+    `${gramos} g a ${quilate}k · ${fmtCOP2(precioGramo)} por gramo`;
+
+  const referencias = [
+    {label: '1 gramo', gramos: 1},
+    {label: '5 gramos', gramos: 5},
+    {label: '10 gramos', gramos: 10},
+    {label: '1 castellano (≈4.6 g, ref. tradicional)', gramos: 4.6},
+    {label: '1 onza troy (31.10 g)', gramos: GRAMOS_POR_ONZA},
+  ];
+  const tbody = document.querySelector('#tabla-referencia tbody');
+  tbody.innerHTML = '';
+  referencias.forEach(ref => {
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td'); td1.textContent = ref.label;
+    const td2 = document.createElement('td'); td2.className = 'num'; td2.textContent = fmtCOP(precioGramo * ref.gramos);
+    tr.appendChild(td1); tr.appendChild(td2);
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('input-gramos').addEventListener('input', actualizarSimuladorGramos);
+document.getElementById('input-quilate').addEventListener('change', actualizarSimuladorGramos);
+actualizarSimuladorGramos();
+
+// ---------- SIMULADOR: inversión ----------
+function actualizarSimuladorInversion() {
+  const monto = parseFloat(document.getElementById('input-monto').value) || 0;
+  const retorno = DATA.resumen.retorno_predicho_manana_pct / 100;
+  const gramos = monto / PRECIO_GRAMO_24K;
+  const valorManana = monto * (1 + retorno);
+  const ganancia = valorManana - monto;
+  const up = ganancia >= 0;
+
+  document.getElementById('inv-gramos').textContent = gramos.toFixed(3) + ' g';
+  document.getElementById('inv-valor-manana').textContent = fmtCOP(valorManana);
+  const gEl = document.getElementById('inv-ganancia');
+  gEl.textContent = (up ? '+' : '') + fmtCOP(ganancia) + ' (' + fmtPct(retorno*100) + ')';
+  gEl.className = 'val ' + (up ? 'up' : 'down');
+}
+document.getElementById('input-monto').addEventListener('input', actualizarSimuladorInversion);
+actualizarSimuladorInversion();
+
+// tabs
+document.querySelectorAll('.sim-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sim-tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.sim-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- KPI ROW ----------
+function renderKPIs() {
+  const r = DATA.resumen;
+  const up = r.retorno_predicho_manana_pct >= 0;
+  const evaluadas = r.predicciones_evaluadas || 0;
+  const kpis = [
+    { label: 'Precio actual del oro (COP/oz)', value: fmtCOP(r.precio_oro_cop_hoy), foot: 'Último cierre con datos completos' },
+    { label: `Predicción para ${fmtDateShort(r.fecha_objetivo)}`, value: fmtCOP(r.precio_oro_cop_predicho_manana), delta: (up ? '▲ ' : '▼ ') + fmtPct(r.retorno_predicho_manana_pct), deltaClass: up ? 'up' : 'down' },
+    { label: 'Modelo campeón', value: r.modelo_campeon, foot: `+${r.mejora_rmse_vs_referencia_pct}% vs. referencia ingenua · validado con 6 ventanas` },
+    { label: 'Error histórico del modelo', value: evaluadas > 0 ? fmtPct(r.error_abs_promedio_pct, 2).replace('+','') : '—', pending: evaluadas > 0 ? `Sobre ${evaluadas} predicción(es) confirmada(s)` : 'Se acumula día a día' },
+    { label: 'Aciertos de dirección', value: evaluadas > 0 ? r.aciertos_direccion_pct.toFixed(0) + '%' : '—', pending: evaluadas > 0 ? null : 'Sube / baja acertado, día a día' },
+  ];
+  const el = document.getElementById('kpi-row');
+  kpis.forEach(k => {
+    const card = document.createElement('div'); card.className = 'kpi';
+    const label = document.createElement('div'); label.className = 'label'; label.textContent = k.label;
+    const value = document.createElement('div'); value.className = 'value'; value.textContent = k.value;
+    card.appendChild(label); card.appendChild(value);
+    if (k.delta) { const d = document.createElement('div'); d.className = 'delta ' + k.deltaClass; d.textContent = k.delta; card.appendChild(d); }
+    if (k.foot) { const f = document.createElement('div'); f.className = 'foot'; f.textContent = k.foot; card.appendChild(f); }
+    if (k.pending) { const p = document.createElement('div'); p.className = 'pending'; p.textContent = k.pending; card.appendChild(p); }
+    el.appendChild(card);
+  });
+}
+renderKPIs();
+
+// ---------- LINE CHART ----------
+const tooltip = document.getElementById('tooltip');
+
+function lineChart(container, series, opts) {
+  opts = opts || {};
+  const width = container.clientWidth || 640;
+  const height = opts.height || 220;
+  const margin = {top: 10, right: 14, bottom: 22, left: opts.compact ? 46 : 66};
+  const innerW = width - margin.left - margin.right;
+  const innerH = height - margin.top - margin.bottom;
+
+  const allPoints = series.flatMap(s => s.data);
+  if (!allPoints.length) {
+    container.innerHTML = '<div class="empty-note">No hay datos suficientes todavía.</div>';
+    return;
+  }
+  const dates = [...new Set(allPoints.map(p => p[0]))].sort();
+  const xIndex = new Map(dates.map((d,i) => [d,i]));
+  const values = allPoints.map(p => p[1]);
+  let yMin = Math.min(...values), yMax = Math.max(...values);
+  const pad = (yMax - yMin) * 0.08 || Math.abs(yMax || 1) * 0.08;
+  yMin -= pad; yMax += pad;
+
+  const x = i => margin.left + (dates.length <= 1 ? innerW/2 : (i/(dates.length-1)) * innerW);
+  const y = v => margin.top + innerH - ((v - yMin) / (yMax - yMin || 1)) * innerH;
+
+  const svgns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', height);
+  svg.style.display = 'block';
+  svg.style.overflow = 'visible';
+
+  const steps = 4;
+  for (let i=0;i<=steps;i++) {
+    const v = yMin + (yMax-yMin)*i/steps;
+    const yy = y(v);
+    const line = document.createElementNS(svgns,'line');
+    line.setAttribute('x1', margin.left); line.setAttribute('x2', width-margin.right);
+    line.setAttribute('y1', yy); line.setAttribute('y2', yy);
+    line.setAttribute('stroke', cssVar('--grid')); line.setAttribute('stroke-width','1');
+    svg.appendChild(line);
+    const label = document.createElementNS(svgns,'text');
+    label.setAttribute('x', margin.left - 8); label.setAttribute('y', yy+3);
+    label.setAttribute('text-anchor','end'); label.setAttribute('font-size','10.5');
+    label.setAttribute('fill', cssVar('--text-muted'));
+    label.textContent = opts.yfmt ? opts.yfmt(v) : Math.round(v);
+    svg.appendChild(label);
+  }
+  [0, Math.floor((dates.length-1)/2), dates.length-1].forEach(i => {
+    if (i<0 || i>=dates.length) return;
+    const label = document.createElementNS(svgns,'text');
+    label.setAttribute('x', x(i)); label.setAttribute('y', height-4);
+    label.setAttribute('text-anchor', i===0?'start':(i===dates.length-1?'end':'middle'));
+    label.setAttribute('font-size','10.5'); label.setAttribute('fill', cssVar('--text-muted'));
+    label.textContent = fmtDateShort(dates[i]);
+    svg.appendChild(label);
+  });
+
+  series.forEach((s) => {
+    const color = s.color || cssVar('--series-1');
+    const map = new Map(s.data);
+    const pts = dates.filter(d => map.has(d)).map(d => [xIndex.get(d), map.get(d)]);
+    if (pts.length < 2 && !s.dots) return;
+
+    if (s.area) {
+      const areaPath = ['M', x(pts[0][0]), y(yMin)];
+      pts.forEach(p => areaPath.push('L', x(p[0]), y(p[1])));
+      areaPath.push('L', x(pts[pts.length-1][0]), y(yMin), 'Z');
+      const area = document.createElementNS(svgns,'path');
+      area.setAttribute('d', areaPath.join(' '));
+      area.setAttribute('fill', color); area.setAttribute('opacity', '0.10');
+      svg.appendChild(area);
+    }
+    if (pts.length >= 2) {
+      const d = pts.map((p,i) => (i===0?'M':'L') + x(p[0]) + ',' + y(p[1])).join(' ');
+      const path = document.createElementNS(svgns,'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill','none'); path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round');
+      path.setAttribute('stroke-linecap','round');
+      if (s.dashed) path.setAttribute('stroke-dasharray', '5,4');
+      svg.appendChild(path);
+    }
+    if (s.dots) {
+      pts.forEach(p => {
+        const c = document.createElementNS(svgns,'circle');
+        c.setAttribute('cx', x(p[0])); c.setAttribute('cy', y(p[1]));
+        c.setAttribute('r', 4); c.setAttribute('fill', color);
+        c.setAttribute('stroke', cssVar('--surface-1')); c.setAttribute('stroke-width','2');
+        svg.appendChild(c);
+      });
+    }
+  });
+
+  const crosshair = document.createElementNS(svgns,'line');
+  crosshair.setAttribute('y1', margin.top); crosshair.setAttribute('y2', margin.top+innerH);
+  crosshair.setAttribute('stroke', cssVar('--baseline')); crosshair.setAttribute('stroke-width','1');
+  crosshair.style.opacity = 0;
+  svg.appendChild(crosshair);
+
+  const hitRect = document.createElementNS(svgns,'rect');
+  hitRect.setAttribute('x', margin.left); hitRect.setAttribute('y', margin.top);
+  hitRect.setAttribute('width', innerW); hitRect.setAttribute('height', innerH);
+  hitRect.setAttribute('fill', 'transparent');
+  hitRect.style.cursor = 'crosshair';
+  svg.appendChild(hitRect);
+
+  hitRect.addEventListener('pointermove', (ev) => {
+    const rect = container.getBoundingClientRect();
+    const px = ev.clientX - rect.left;
+    const rel = (px - margin.left) / innerW;
+    const idx = Math.max(0, Math.min(dates.length-1, Math.round(rel * (dates.length-1))));
+    const dateAtIdx = dates[idx];
+    crosshair.setAttribute('x1', x(idx)); crosshair.setAttribute('x2', x(idx));
+    crosshair.style.opacity = 1;
+    let html = `<div class="tt-date">${fmtDate(dateAtIdx)}</div>`;
+    series.forEach(s => {
+      const map = new Map(s.data);
+      if (!map.has(dateAtIdx)) return;
+      const val = map.get(dateAtIdx);
+      html += `<div class="tt-row"><span class="tt-key" style="background:${s.color||cssVar('--series-1')}"></span><span class="tt-name">${s.name||''}</span><span class="tt-val">${opts.yfmt ? opts.yfmt(val) : val}</span></div>`;
+    });
+    tooltip.innerHTML = html;
+    tooltip.style.left = (ev.clientX + 14) + 'px';
+    tooltip.style.top = (ev.clientY - 10) + 'px';
+    tooltip.style.opacity = 1;
+  });
+  hitRect.addEventListener('pointerleave', () => { crosshair.style.opacity = 0; tooltip.style.opacity = 0; });
+
+  container.innerHTML = '';
+  if (series.filter(s=>s.name).length >= 2) {
+    const legend = document.createElement('div'); legend.className = 'legend';
+    series.filter(s=>s.name).forEach(s => {
+      const item = document.createElement('div'); item.className='item';
+      const key = document.createElement('span'); key.className='key';
+      key.style.background = s.color || cssVar('--series-1');
+      if (s.dashed) { key.style.borderTop = `2px dashed ${s.color}`; key.style.background='transparent'; }
+      const label = document.createElement('span'); label.textContent = s.name;
+      item.appendChild(key); item.appendChild(label);
+      legend.appendChild(item);
+    });
+    container.appendChild(legend);
+  }
+  container.appendChild(svg);
+}
+
+// ---------- DIVERGING BAR CHART ----------
+function divergingBars(container, items, opts) {
+  opts = opts || {};
+  container.innerHTML = '';
+  const vals = items.map(d => d.value);
+  const maxAbs = Math.max(...vals.map(Math.abs), 1e-9);
+  items.forEach(d => {
+    const row = document.createElement('div'); row.className = 'bar-row';
+    const name = document.createElement('div'); name.className = 'name' + (d.highlight ? ' champion' : ''); name.textContent = d.label;
+    const track = document.createElement('div'); track.className = 'track';
+    const zero = document.createElement('div'); zero.className = 'zero-line'; zero.style.left = '50%';
+    track.appendChild(zero);
+    const fill = document.createElement('div'); fill.className = 'fill';
+    const widthPct = Math.abs(d.value) / maxAbs * 48;
+    const positive = d.value >= 0;
+    fill.style.background = positive ? cssVar('--series-1') : cssVar('--critical');
+    fill.style.left = positive ? '50%' : (50 - widthPct) + '%';
+    fill.style.width = widthPct + '%';
+    track.appendChild(fill);
+    const val = document.createElement('div'); val.className = 'val';
+    val.style.color = positive ? cssVar('--series-1') : cssVar('--critical');
+    val.textContent = (opts.fmt ? opts.fmt(d.value) : d.value);
+    row.appendChild(name); row.appendChild(track); row.appendChild(val);
+    if (d.highlight) { const badge = document.createElement('span'); badge.className = 'champion-badge'; badge.textContent = 'EN PRODUCCIÓN'; name.appendChild(badge); }
+    container.appendChild(row);
+  });
+}
+
+// ---------- RENDER: histórico ----------
+let currentRange = 'all';
+function filterByRange(data, range) {
+  if (range === 'all') return data;
+  const days = parseInt(range, 10);
+  const lastDate = new Date(data[data.length-1][0] + 'T00:00:00');
+  const cutoff = new Date(lastDate); cutoff.setDate(cutoff.getDate() - days);
+  return data.filter(([d]) => new Date(d+'T00:00:00') >= cutoff);
+}
+function renderHistorico() {
+  const precio = filterByRange(DATA.serie_precio, currentRange);
+  lineChart(document.getElementById('chart-precio'), [{data: precio, color: cssVar('--series-1'), area: true, name: 'Oro en COP/oz'}], {height: 240, yfmt: fmtCOPk});
+  const usd = filterByRange(DATA.serie_usd, currentRange);
+  lineChart(document.getElementById('chart-usdcop'), [{data: usd, color: cssVar('--series-1'), area: true}], {height: 130, compact: true, yfmt: v => '$'+Math.round(v).toLocaleString('es-CO')});
+  const xau = filterByRange(DATA.serie_xau, currentRange);
+  lineChart(document.getElementById('chart-xau'), [{data: xau, color: cssVar('--series-1'), area: true}], {height: 130, compact: true, yfmt: v => 'US$'+Math.round(v)});
+}
+renderHistorico();
+document.querySelectorAll('#range-filter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#range-filter button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRange = btn.dataset.range;
+    renderHistorico();
+  });
+});
+
+// Predicción vs realidad
+(function() {
+  const rows = DATA.predicciones;
+  const container = document.getElementById('chart-prediccion');
+  const evaluadas = rows.filter(r => r.precio_real != null);
+  if (rows.length === 0) {
+    container.innerHTML = '<div class="empty-note">Aún no hay predicciones registradas. Esta sección se llena automáticamente cada día hábil.</div>';
+    return;
+  }
+  const real = evaluadas.map(r => [r.fecha_objetivo, r.precio_real]);
+  const predicho = rows.map(r => [r.fecha_objetivo, r.precio_predicho]);
+  lineChart(container, [
+    {data: real, color: cssVar('--series-1'), name: 'Precio real', dots: true},
+    {data: predicho, color: cssVar('--series-2'), name: 'Precio predicho', dashed: true, dots: true},
+  ], {height: 240, yfmt: fmtCOPk});
+  if (evaluadas.length < 5) {
+    const note = document.createElement('div'); note.className = 'empty-note'; note.style.marginTop = '10px';
+    note.textContent = `Este historial recién comienza (${evaluadas.length} de ${rows.length} predicciones ya confirmadas contra el precio real). Vuelve en los próximos días para ver la serie completa.`;
+    container.appendChild(note);
+  }
+})();
+
+divergingBars(document.getElementById('chart-modelos'), DATA.modelos.map((m,i) => ({label: m.modelo, value: m.mejora_pct, highlight: i===0})), {fmt: v => fmtPct(v,2)});
+divergingBars(document.getElementById('chart-macro'), DATA.corrs_macro.map(m => ({label: m.nombre, value: m.corr})), {fmt: v => v.toFixed(3)});
+divergingBars(document.getElementById('chart-lags'), DATA.corrs_lag.map(m => ({label: 'Rezago ' + m.lag + ' día(s)', value: m.corr})), {fmt: v => v.toFixed(3)});
+divergingBars(document.getElementById('chart-dow'), DATA.por_dia_semana.map(d => ({label: d.dia, value: d.retorno_pct})), {fmt: v => fmtPct(v,3)});
+</script>
+</body>
+</html>

@@ -27,10 +27,13 @@ jobs:
       - name: Ejecutar pipeline de prediccion
         run: python src/05_prediccion_diaria.py
 
+      - name: Generar pagina web (docs/index.html para GitHub Pages)
+        run: python src/06_build_pagina.py
+
       - name: Commit y push de los resultados
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dashboard_data/
+          git add dashboard_data/ docs/
           git diff --cached --quiet || git commit -m "Actualizacion diaria: prediccion oro COP $(date -u +%Y-%m-%d)"
           git push
