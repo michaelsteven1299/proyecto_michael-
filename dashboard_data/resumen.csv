@@ -1,2 +1,2 @@
 fecha_actualizacion,precio_oro_cop_hoy,precio_oro_cop_predicho_manana,retorno_predicho_manana_pct,fecha_objetivo,error_abs_promedio_pct,aciertos_direccion_pct,predicciones_evaluadas,modelo_campeon,mejora_rmse_vs_referencia_pct
-2026-08-07 22:36 UTC,1256232.4218440428,1249609.1090103663,-0.5272362596687525,2026-08-10,2.042327477500556,75.0,4,Linear Regression,3.9773530372507997
+2026-08-10 22:38 UTC,1262506.3951104134,1270478.5032533712,0.6314509117603885,2026-08-11,1.87537337782842,60.0,5,Linear Regression,3.943824166136653
