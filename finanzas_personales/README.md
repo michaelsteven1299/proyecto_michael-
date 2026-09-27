@@ -1,51 +1,71 @@
-# Mis Finanzas — plantilla mes a mes
+# Mis Finanzas: plantilla mes a mes conectada a Notion
 
-App web interactiva (un solo archivo, `index.html`) para llevar ingresos y gastos
-mes a mes. Está basada en la base de Notion **«Registro de Finanzas Personales»**:
-usa los mismos campos (Descripción, Tipo, Gasto, Ingreso, Fecha, Método de Pago),
-los mismos tipos (Gasto, Ingreso, Transferencia, Inversión, Reembolso) y tus métodos
-de pago (Nequi, Bancolombia, Bancoomeva, Lulo, Efectivo, Pse, Transferencia, Nu).
+App interactiva (`index.html`) para llevar ingresos y gastos mes a mes, **guardada en tu
+base de Notion «Movimientos»**. Está basada en tu base «Registro de Finanzas Personales»
+(mismos tipos, campos y métodos de pago).
 
 ## Qué hace
 
-- **Navegas mes por mes** con las flechas ‹ › (toca el nombre del mes para volver al actual).
-- **Tú creas los ítems** con el botón **Agregar**: tipo, monto, descripción, categoría y método de pago.
-- Cada ítem puede ser **«Solo una vez»** (queda en su fecha) o **«Cada mes»** (se repite
-  desde ese mes, con un día fijo y, si quieres, una fecha «Hasta», ej. la última cuota de un crédito).
-- Al editar un ítem mensual eliges si el cambio aplica a **solo este mes**, **este mes y los
-  siguientes** (ej. te subieron el arriendo) o **todos los meses**. Lo mismo al eliminar.
-- Casilla para marcar cada movimiento como **pagado / recibido**, y un total de **pendiente por pagar**.
-- **Resumen**: balance del mes, ingresos, gastos, inversión, tasa de ahorro y gráfico de dona por categoría.
-- **Gráficos** (6 o 12 meses): ingresos vs. gastos, balance de cada mes, saldo acumulado,
-  gastos por método de pago y tabla mensual.
-- Modo claro/oscuro y diseño pensado primero para el celular.
+- **Mes a mes** con las flechas ‹ › (toca el nombre del mes para volver al actual).
+- **Agregar**: tipo, monto, descripción, categoría y método de pago.
+- **Solo una vez** o **Cada mes**: un ítem mensual se repite desde ese mes, en un día fijo
+  y, si quieres, **hasta** un mes (por ejemplo, la última cuota de un crédito).
+- Al editar un ítem mensual eliges: **solo este mes**, **este mes y los siguientes** o
+  **todos los meses**. Lo mismo al eliminar.
+- Casilla de **pagado / recibido** y total **pendiente por pagar**.
+- **Resumen**, **Movimientos** (con filtros) y **Gráficos** (6 o 12 meses, balance, saldo
+  acumulado, métodos de pago y tabla).
+- Cada cambio se guarda en Notion: ves lo mismo en el celular y en el computador, y no se
+  pierde al cerrar.
 
-## Dónde se guardan los datos
+## Cómo funciona
 
-En el propio dispositivo/navegador (localStorage). Por eso, en la pestaña **Gráficos → Tus datos**:
+```
+Notion (tu página)  ──embed──▶  Cloudflare Worker  ──API──▶  base «Movimientos»
+                                (sirve la app y guarda)
+```
 
-- **Descargar / Copiar copia**: respaldo en JSON. Restáuralo en otro celular o computador.
-- **CSV de este mes / del año**: exporta con las columnas de tu base de Notion para
-  importarlo allá (••• → *Merge with CSV*).
+- `index.html`: la app. Si se abre sola (sin el servidor) funciona en modo "local" y guarda
+  solo en el navegador.
+- `worker/worker.js`: el servidor, **un solo archivo** que se pega en Cloudflare. Ya trae la
+  app adentro. Se genera con `python3 worker/build.py` a partir de
+  `worker/worker.template.js` + `index.html`.
+- Cada mes de un ítem mensual es una fila propia en Notion. Las columnas **Serie** y
+  **Omitido** las llena la app; no hace falta tocarlas.
 
-Al abrirla por primera vez muestra **datos de ejemplo**; toca «Borrar ejemplos» para empezar con los tuyos.
+## Configuración (una sola vez, unos 10 minutos)
 
-## Cómo abrirla en Notion (celular)
+### 1. Clave de Notion
+1. Entra a <https://www.notion.so/profile/integrations> → **Nueva integración**.
+2. Nombre: `Mis Finanzas`, tipo **Interna**, tu espacio de trabajo → **Guardar**.
+3. Copia el **Secreto de integración interna** (empieza por `ntn_`).
+4. Abre la página **💰 Mis Finanzas Mes a Mes** en Notion → **•••** (arriba a la derecha) →
+   **Conexiones** → busca `Mis Finanzas` → **Confirmar**.
 
-La app se publica en GitHub Pages junto a la página del oro, en:
+### 2. Servidor en Cloudflare (gratis)
+1. Crea una cuenta en <https://dash.cloudflare.com/sign-up>.
+2. **Workers & Pages** → **Create** → **Create Worker** → nombre `mis-finanzas` → **Deploy**.
+3. **Edit code** → borra todo → pega el contenido completo de
+   [`worker/worker.js`](worker/worker.js) → **Deploy**.
+4. Vuelve al worker → **Settings** → **Variables and Secrets** → agrega:
 
-`https://michaelsteven1299.github.io/proyecto_michael-/finanzas/`
+   | Nombre | Tipo | Valor |
+   |---|---|---|
+   | `NOTION_TOKEN` | Secret | la clave `ntn_...` del paso 1 |
+   | `APP_KEY` | Secret | una clave que inventes, ej. `mifinanza-7392-kq` (solo letras, números y guiones) |
+   | `DATABASE_ID` | Text | `1a850b5350d54c9daa81a47a0806b362` |
 
-(se despliega cuando el workflow `prediccion_diaria.yml` corre en `main`; puedes
-correrlo a mano desde **Actions → Prediccion diaria oro COP → Run workflow**).
+   → **Deploy**.
 
-En Notion:
+### 3. Abrirla y ponerla en Notion
+1. El enlace de tu app es: `https://mis-finanzas.<tu-subdominio>.workers.dev/?k=<tu APP_KEY>`
+   (el subdominio aparece en la página del worker en Cloudflare).
+2. Ábrelo en el navegador: arriba debe decir **«Guardado en Notion»**.
+3. En tu página de Notion escribe `/embed`, pega el enlace y ajusta el alto.
 
-1. Crea una página, por ejemplo «💰 Mis Finanzas».
-2. Escribe `/embed`, pega el enlace de arriba y ajusta el alto del bloque.
-3. En el celular, abre esa página; si prefieres pantalla completa, guarda el enlace
-   como acceso directo en la pantalla de inicio (Compartir → *Añadir a pantalla de inicio*).
+> El enlace lleva tu clave: quien lo tenga puede ver y editar tus finanzas. Comparte la
+> página de Notion solo con personas de confianza.
 
-> Nota: Notion en el celular a veces limpia los datos de las páginas incrustadas.
-> Para que tus datos no dependan de eso, usa siempre el mismo acceso (el embed **o** el
-> acceso directo) y descarga una copia de seguridad de vez en cuando.
+## Actualizar la app
+
+Si cambia `index.html`: `python3 worker/build.py` y vuelve a pegar `worker/worker.js` en Cloudflare.
