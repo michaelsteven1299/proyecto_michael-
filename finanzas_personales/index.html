@@ -270,6 +270,10 @@ textarea{width:100%; min-height:90px; border:1px solid var(--line); border-radiu
       <button type="button" id="clearEx">Borrar ejemplos</button>
     </div>
 
+    <div class="banner" id="noStore" hidden style="background:color-mix(in srgb, var(--warn) 16%, var(--surface))">
+      <span>Aquí no se pueden guardar los cambios automáticamente. Antes de cerrar, ve a <b>Gráficos → Copiar copia</b>, o abre la app desde su enlace directo.</span>
+    </div>
+
     <!-- RESUMEN -->
     <div id="view-resumen" class="view" style="display:grid; gap:18px">
       <section class="hero" aria-label="Balance del mes">
@@ -493,6 +497,8 @@ const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n)
 if (window.Chart){ Chart.defaults.font.family="Figtree, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"; }
 
 /* ---------- Estado ---------- */
+let canStore = false;
+try{ localStorage.setItem("fin_test","1"); localStorage.removeItem("fin_test"); canStore = true; }catch(e){}
 let state = load();
 let cur = ymNow();
 let tab = "resumen";
@@ -574,6 +580,7 @@ function render(){
   const isNow = cur===ymNow();
   lbl.innerHTML = esc(ymLabel(cur)) + `<span>${isNow?"Mes actual":"Toca para volver al mes actual"}</span>`;
   $("#exBanner").hidden = !state.ejemplo;
+  $("#noStore").hidden = canStore;
   for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab===tab));
   $("#view-resumen").hidden = tab!=="resumen";
   $("#view-mov").hidden = tab!=="mov";
@@ -667,10 +674,9 @@ function baseOpts(){
     }
   };
 }
-function mk(id,cfg){ if(!window.Chart) return; if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+function mk(id,cfg){ if(!window.Chart){ const c=document.getElementById(id); if(c && !c.dataset.nochart){ c.dataset.nochart="1"; c.parentElement.innerHTML='<div class="empty">No se pudo cargar el gráfico. Revisa tu conexión a internet.</div>'; } return; } if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
 
 function drawDonut(arr, cols){
-  if(!window.Chart) return;
   mk("cDonut",{type:"doughnut",
     data:{labels:arr.map(x=>x[0]), datasets:[{label:"Gasto",data:arr.map(x=>x[1]), backgroundColor:cols.slice(0,arr.length), borderColor:cssv("--surface"), borderWidth:2, borderRadius:4, hoverOffset:6}]},
     options:{responsive:true, maintainAspectRatio:false, cutout:"66%", plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.label}: ${money(c.parsed)}`}}}}
