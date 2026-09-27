@@ -61,6 +61,14 @@ jobs:
           git diff --cached --quiet || git commit -m "Actualizacion diaria: prediccion oro COP $(date -u +%Y-%m-%d)"
           git push
 
+      # La app de finanzas personales (carpeta finanzas_personales/) se
+      # publica junto a la pagina del oro en /finanzas/. Se copia despues
+      # del commit para no duplicar el archivo dentro de docs/ en el repo.
+      - name: Incluir app de finanzas personales en Pages
+        run: |
+          mkdir -p docs/finanzas
+          cp finanzas_personales/index.html docs/finanzas/index.html
+
       # El push anterior usa el GITHUB_TOKEN automatico, que no siempre
       # dispara la reconstruccion de Pages por si solo. Por eso se
       # despliega aqui explicitamente con las acciones oficiales de Pages,
